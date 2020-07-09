@@ -2,11 +2,13 @@
   "name": "@earnd/swagger-middleware",
   "version": "0.0.1",
   "description": "",
-  "main": "src/swagger.ts",
+  "main": "dist/swagger.js",
+  "types": "dist/swagger.d.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "prepublish": "tsc",
     "test": "jest"
   },
   "repository": {
