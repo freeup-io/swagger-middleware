@@ -55,10 +55,7 @@ describe('swagger middleware', () => {
 
         expect(response).toMatchObject({
           status: 400,
-          body: {
-            name: 'BadRequestError',
-            message: 'data.name should be string',
-          },
+          body: {},
         });
       });
     });
@@ -77,10 +74,7 @@ describe('swagger middleware', () => {
 
         expect(response).toMatchObject({
           status: 500,
-          body: {
-            name: 'InternalServerError',
-            message: 'Some internal error',
-          },
+          body: {},
         });
       });
     });
@@ -97,10 +91,7 @@ describe('swagger middleware', () => {
 
         expect(response).toMatchObject({
           status: 500,
-          body: {
-            name: 'InternalServerError',
-            message: 'Some internal error',
-          },
+          body: {},
         });
       });
     });

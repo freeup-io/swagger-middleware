@@ -5,7 +5,10 @@ import { OpenAPIV2 } from 'openapi-types';
 import { MethodNotAllowed, BadRequest } from 'http-errors';
 import Ajv from 'ajv';
 
-import errorHandler from './errorHandler';
+interface Options {
+  preMiddleware?: Handler[];
+  postMiddleware?: Handler[];
+}
 
 export interface Controllers {
   [operationId: string]: Handler;
@@ -70,10 +73,7 @@ function defineRoutes(paths: OpenAPIV2.PathsObject, controllers: Controllers): R
         throw new Error(`Handler is not defined for operationId: ${operationId}`);
       }
 
-      router
-        .route(path)
-        [method](validateRequest(methodDef.parameters))
-        [method](processAsyncHandler(controller));
+      router.route(path)[method](validateRequest(methodDef.parameters))[method](processAsyncHandler(controller));
     });
 
     router.all(path, methodNotAllowedHandler);
@@ -82,18 +82,31 @@ function defineRoutes(paths: OpenAPIV2.PathsObject, controllers: Controllers): R
   return router;
 }
 
-export default function swagger(swaggerFile: string, controllers: Controllers): Router {
+const defaultOptions: Options = {
+  preMiddleware: [],
+  postMiddleware: [],
+};
+
+export default function swagger(
+  swaggerFile: string,
+  controllers: Controllers,
+  { preMiddleware, postMiddleware }: Options = defaultOptions
+): Router {
   // the file is loaded synchronously to avoid initialising Express asynchronously
   const apiDefinition = YAML.load(swaggerFile);
   const router = Router();
+
+  preMiddleware.forEach((mw: Handler) => router.use(mw));
 
   SwaggerParser.validate(apiDefinition, (err, api: OpenAPIV2.Document) => {
     if (err) {
       throw err;
     }
     const { basePath } = api;
+
     router.use(basePath, defineRoutes(api.paths, controllers));
-    router.use(errorHandler);
+
+    postMiddleware.forEach((mw: Handler) => router.use(mw));
   });
 
   return router;
