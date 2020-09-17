@@ -11,7 +11,7 @@ interface Options {
 }
 
 export interface Controllers {
-  [operationId: string]: Handler;
+  [operationId: string]: Controller;
 }
 
 export enum HttpMethods {
@@ -21,14 +21,18 @@ export enum HttpMethods {
   delete,
 }
 
+type Controller = (req: Request, res: Response) => Promise<void>;
+
 const swaggerPathToExpress = (swaggerPath: string) => swaggerPath.replace(/{(.+?)}/g, (_, group) => `:${group}`);
 
 const methodNotAllowedHandler = (_req: Request, _res: Response, next: Function) => {
   next(new MethodNotAllowed());
 };
 
-const processAsyncHandler = (handler: Handler) => (req: Request, res: Response, next: NextFunction) => {
-  handler(req, res, next).catch((e: Error) => next(e));
+const processAsyncHandler = (handler: Controller) => (req: Request, res: Response, next: NextFunction) => {
+  handler(req, res)
+    .then(() => next())
+    .catch((e: Error) => next(e));
 };
 
 const getBodySchema = (params: any) => {
@@ -86,6 +90,8 @@ const defaultOptions: Options = {
   preMiddleware: [],
   postMiddleware: [],
 };
+
+console.log('This is updated swagger middleware');
 
 export default function swagger(
   swaggerFile: string,
