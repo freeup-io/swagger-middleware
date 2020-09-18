@@ -4,6 +4,7 @@ import SwaggerParser from '@apidevtools/swagger-parser';
 import { OpenAPIV2 } from 'openapi-types';
 import { MethodNotAllowed, BadRequest } from 'http-errors';
 import Ajv from 'ajv';
+import bodyParser from "body-parser"
 
 interface Options {
   preMiddleware?: Handler[];
@@ -95,6 +96,9 @@ export default function swagger(
   // the file is loaded synchronously to avoid initialising Express asynchronously
   const apiDefinition = YAML.load(swaggerFile);
   const router = Router();
+
+  router.use(bodyParser.json({ limit: '50mb' }));
+  router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   preMiddleware.forEach((mw: Handler) => router.use(mw));
 
