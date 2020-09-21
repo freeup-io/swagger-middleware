@@ -1,10 +1,9 @@
-import { Router, Handler, Request, Response, json, NextFunction } from 'express';
+import { Router, Handler, Request, Response, json, NextFunction, urlencoded } from 'express';
 import YAML from 'yamljs';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import { OpenAPIV2 } from 'openapi-types';
 import { MethodNotAllowed, BadRequest } from 'http-errors';
 import Ajv from 'ajv';
-import bodyParser from "body-parser"
 
 interface Options {
   preMiddleware?: Handler[];
@@ -57,7 +56,8 @@ const validateRequest = (parameters: OpenAPIV2.Parameters) => {
 
 function defineRoutes(paths: OpenAPIV2.PathsObject, controllers: Controllers): Router {
   const router = Router();
-  router.use(json());
+  router.use(json({ limit: '100mb' }));
+  router.use(urlencoded({ limit: '100mb', extended: true }));
 
   Object.entries(paths).forEach(([swaggerPath, pathDef]) => {
     const path = swaggerPathToExpress(swaggerPath);
@@ -97,8 +97,8 @@ export default function swagger(
   const apiDefinition = YAML.load(swaggerFile);
   const router = Router();
 
-  router.use(bodyParser.json({ limit: '50mb' }));
-  router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+  router.use(json({ limit: '100mb' }));
+  router.use(urlencoded({ limit: '100mb', extended: true }));
 
   preMiddleware.forEach((mw: Handler) => router.use(mw));
 
